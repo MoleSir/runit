@@ -93,6 +93,8 @@ impl fmt::Display for Complex {
 
 #[cfg(test)]
 mod tests {
+    use crate::complex;
+
     use super::*;
 
     fn n(val: f64) -> Number {
@@ -102,6 +104,7 @@ mod tests {
     #[test]
     fn test_creation() {
         let c = Complex { re: n(3.0), im: n(4.0) };
+        let _ = complex!(3.0, 4.0);
         assert_eq!(c.re, n(3.0));
         assert_eq!(c.im, n(4.0));
     }

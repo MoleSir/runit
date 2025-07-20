@@ -31,6 +31,25 @@ macro_rules! num {
 }
 
 #[macro_export]
+macro_rules! complex {
+    ($re:literal $re_suffix:ident , $im:literal $im_suffix:ident) => {
+        $crate::Complex::new($crate::num!($re $re_suffix), $crate::num!($im $im_suffix))
+    };
+
+    ($re:literal $re_suffix:ident , $im:literal ) => {
+        $crate::Complex::new($crate::num!($re $re_suffix), $crate::num!($im))
+    };
+
+    ($re:literal , $im:literal $im_suffix:ident) => {
+        $crate::Complex::new($crate::num!($re), $crate::num!($im $im_suffix))
+    };
+
+    ($re:literal , $im:literal ) => {
+        $crate::Complex::new($crate::num!($re), $crate::num!($im))
+    };
+}
+
+#[macro_export]
 macro_rules! v {
     ($($t:tt)*) => {
         $crate::Voltage::new($crate::num!($($t)*))
