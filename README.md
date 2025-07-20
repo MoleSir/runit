@@ -1,6 +1,6 @@
 # runit
 
-`runit` is a Rust library for physical units and quantities with compile-time safety and automatic unit conversions.
+A Rust library for physical units with compile-time safety and automatic unit conversions.
 
 - [x] Supports SI units and common derived units  
 - [x] Strongly typed unit-safe arithmetic  

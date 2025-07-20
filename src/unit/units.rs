@@ -4,7 +4,7 @@ use paste::paste;
 macro_rules! define_unit {
     ($name:ident, $symbol:literal) => {
         paste! {
-            #[derive(PartialEq, Eq, Clone, Copy)]
+            #[derive(Debug, PartialEq, Eq, Clone, Copy)]
             pub struct [<$name Unit>];
 
             impl Unit for [<$name Unit>] {
@@ -87,9 +87,42 @@ impl Time {
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
     use crate::{num, u, i, r};
 
     use super::*;
+
+    #[test]
+    fn test_voltage_parsing() {
+        let v = Voltage::from_str("5.6V").unwrap();
+        assert_eq!(v.number, num!(5.6));
+
+        let v = Voltage::from_str("3.3mV").unwrap();
+        assert_eq!(v.number, num!(3.3 m));
+    }
+
+    #[test]
+    fn test_resistance_parsing() {
+        let r = Resistance::from_str("10Ω").unwrap();
+        assert_eq!(r.number, num!(10));
+
+        let r = Resistance::from_str("2.2KΩ").unwrap();
+        assert_eq!(r.number, num!(2.2 k));
+    }
+
+    #[test]
+    fn test_invalid_unit() {
+        let result = Voltage::from_str("5.6A");
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Expect end with 'V'");
+    }
+
+    #[test]
+    fn test_unit_with_whitespace() {
+        let v = Voltage::from_str("  1.2uV ").unwrap();
+        assert_eq!(v.number, num!(1.2 u));
+    }
 
     #[test]
     fn test_same_unit_add_sub() {
@@ -293,4 +326,36 @@ mod tests {
         assert_eq!(phi.value(), num!(6.0));
     }
 
+    #[test]
+    fn test_serialize_deserialize_unit_voltage() {
+        let v = Voltage::from_str("5.0V").unwrap();
+        let json = serde_json::to_string(&v).unwrap();
+        assert_eq!(json, "\"5V\"");
+        let parsed: Voltage = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed, v);
+    }
+
+    #[test]
+    fn test_serialize_deserialize_unit_current() {
+        let i = Current::from_str("2.2mA").unwrap();
+        let json = serde_json::to_string(&i).unwrap();
+        assert_eq!(json, "\"2.2mA\"");
+        let parsed: Current = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed, i);
+    }
+
+    #[test]
+    fn test_serialize_deserialize_unit_unicode() {
+        let r = Resistance::from_str("10kΩ").unwrap();
+        let json = serde_json::to_string(&r).unwrap();
+        assert_eq!(json, "\"10KΩ\"");
+        let parsed: Resistance = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed, r);
+    }
+
+    #[test]
+    fn test_deserialize_invalid_unit() {
+        let result: Result<Voltage, _> = serde_json::from_str("\"3.3A\""); // 单位错了
+        assert!(result.is_err());
+    }
 }

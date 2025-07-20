@@ -79,10 +79,11 @@ const PREFIX_VALUE_TABLE: [(Suffix, f64); 8] = [
     (Suffix::Pico, 1e-12),
 ];
 
-const PREFIX_TABLE: [(Suffix, &'static str); 7] = [
+const PREFIX_TABLE: [(Suffix, &'static str); 8] = [
     (Suffix::Giga, "G"),
     (Suffix::Mega, "M"),
     (Suffix::Kilo, "K"),
+    (Suffix::Kilo, "k"),
     (Suffix::Milli, "m"),
     (Suffix::Micro, "u"),
     (Suffix::Nano, "n"),
@@ -320,7 +321,7 @@ impl Serialize for Number {
     where
         S: Serializer,
     {
-        let s = format!("{}{}", self.value, self.suffix.name());
+        let s = self.to_string();
         serializer.serialize_str(&s)
     }
 }
@@ -427,5 +428,43 @@ mod tests {
         let c = num!(100);
         assert_eq!(c.suffix, Suffix::None);
         assert_eq!(c.value, 100.0);
+    }
+
+    use serde_json;
+
+    #[test]
+    fn test_serialize_number() {
+        let n = Number::new(1.5, Suffix::Milli);
+        let json = serde_json::to_string(&n).unwrap();
+        assert_eq!(json, "\"1.5m\"");
+    }
+
+    #[test]
+    fn test_deserialize_number() {
+        let json = "\"2.2u\"";
+        let n: Number = serde_json::from_str(json).unwrap();
+        assert_eq!(n, Number::new(2.2, Suffix::Micro));
+    }
+
+    #[test]
+    fn test_serialize_deserialize_roundtrip() {
+        let original = Number::new(3.3, Suffix::Nano);
+        let json = serde_json::to_string(&original).unwrap();
+        let parsed: Number = serde_json::from_str(&json).unwrap();
+        assert_eq!(original, parsed);
+    }
+
+    #[test]
+    fn test_deserialize_invalid_number() {
+        let json = "\"bad_number\"";
+        let result: Result<Number, _> = serde_json::from_str(json);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_deserialize_number_no_suffix() {
+        let json = "\"42.0\"";
+        let n: Number = serde_json::from_str(json).unwrap();
+        assert_eq!(n, Number::new(42.0, Suffix::None));
     }
 }
