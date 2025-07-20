@@ -76,3 +76,9 @@ impl<'de, U: Unit> Deserialize<'de> for UnitNumber<U> {
         Self::from_str(&s).map_err(serde::de::Error::custom)
     }
 }
+
+impl<U: Unit> From<Number> for UnitNumber<U> {
+    fn from(value: Number) -> Self {
+        Self::new(value)
+    }
+}
