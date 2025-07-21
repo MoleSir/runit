@@ -1,16 +1,16 @@
 use proc_macro_crate::{crate_name, FoundCrate};
 use quote::quote;
-use syn::{parse::Parse, parse_macro_input, Ident, LitFloat};
+use syn::{parse::Parse, parse_macro_input, Ident, Lit};
 
 struct Input {
-    value: LitFloat,
-    suffix_unit: Ident,
+    value: Lit,
+    suffix_unit: String,
 }
 
 impl Parse for Input {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let value = input.parse::<LitFloat>()?;
-        let suffix_unit = input.parse::<Ident>()?;
+        let value = input.parse::<Lit>()?;
+        let suffix_unit = input.parse::<Ident>()?.to_string();
         Ok(Input { value, suffix_unit })
     }
 }
@@ -19,16 +19,15 @@ impl Parse for Input {
 pub fn u(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as Input);
 
-    let s = input.suffix_unit.to_string();
     for (unit_name, unit) in UNITS_MAP {
-        if s.ends_with(unit_name) {
-            let suffix_len = s.len() - unit_name.len();
+        if input.suffix_unit.ends_with(unit_name) {
+            let suffix_len = input.suffix_unit.len() - unit_name.len();
             let cpath = get_crate_path();
             let value = input.value.clone();
             let unit_ident = syn::Ident::new(unit, proc_macro2::Span::call_site());
 
             let code = if suffix_len != 0 {
-                let suffix = syn::Ident::new(&s[..suffix_len], proc_macro2::Span::call_site());
+                let suffix = syn::Ident::new(&input.suffix_unit[..suffix_len], proc_macro2::Span::call_site());
                 quote! {
                     #cpath::#unit_ident::new(#cpath::num!(#value #suffix))
                 }

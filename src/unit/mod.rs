@@ -82,3 +82,18 @@ impl<U: Unit> From<Number> for UnitNumber<U> {
         Self::new(value)
     }
 }
+
+macro_rules! impl_from {
+    ($t:ty) => {
+        impl<U: Unit> From<$t> for UnitNumber<U> {
+            fn from(value: $t) -> Self {
+                Self::new(Number::from(value as f64))    
+            }
+        }
+    };
+}
+
+impl_from!(f64);
+impl_from!(f32);
+impl_from!(u32);
+impl_from!(i32);

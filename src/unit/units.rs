@@ -1,4 +1,4 @@
-use super::{Unit, UnitNumber};
+use super::{Unit, UnitDiv, UnitMul, UnitNumber};
 use paste::paste;
 
 macro_rules! define_unit {
@@ -14,6 +14,13 @@ macro_rules! define_unit {
             }
 
             pub type $name = UnitNumber<[<$name Unit>]>;
+
+            impl std::ops::Div<$name> for $name {
+                type Output = crate::Number;
+                fn div(self, rhs: $name) -> Self::Output {
+                    self.number / rhs.number
+                }
+            }
         }
     };
 }
@@ -64,14 +71,23 @@ define_rule!(Power, Voltage, Current);         // P = V × I
 define_rule!(Energy, Power, Time);             // E = P × t
 define_rule!(Charge, Capacitance, Voltage);    // Q = C × V
 define_rule!(Charge, Current, Time);           // Q = C × V
-define_rule!(Current, Charge, Time);           // I = Q / t
-
+define_rule!(Current, Charge, Time);           // Q = I × t
+define_rule!(Length, Velocity, Time);          // S = V × T
+ 
 define_rule!(Power, Force, Velocity);          // P = F × v
 define_rule!(Energy, Force, Length);           // E = F × d
 define_rule!(Force, Pressure, Area);           // F = P × A
 
 define_rule!(MagneticFlux, FluxDensity, Area); // Φ = B × A
 define_rule!(MagneticFlux, Voltage, Time);     // Φ = V × t
+
+impl UnitMul<LengthUnit> for LengthUnit {
+    type Output = AreaUnit;
+}
+
+impl UnitDiv<LengthUnit> for AreaUnit {
+    type Output = LengthUnit;
+}
 
 impl Frequency {
     pub fn to_period(&self) -> Time {
@@ -89,7 +105,7 @@ impl Time {
 mod tests {
     use std::str::FromStr;
 
-    use crate::{num, u, i, r};
+    use crate::{i, num, r, u, vel};
 
     use super::*;
 
@@ -126,7 +142,7 @@ mod tests {
 
     #[test]
     fn test_same_unit_add_sub() {
-        let q1 = u!(10.0 mQ); 
+        let q1 = u!(10 mQ); 
         let q2 = u!(5.0 mQ);
         let q3 = q1 + q2;
         assert_eq!(format!("{:.1}", q3), "15.0mQ");
@@ -140,7 +156,7 @@ mod tests {
         let v2 = u!(0.5 V);
         assert_eq!((v1 + v2).to_string(), "2V");
 
-        let i1 = u!(1.0 A);
+        let i1 = u!(1 A);
         let i2 = u!(0.1 A);
         assert_eq!(format!("{:.2}", i1 - i2), "900.00mA");
 
@@ -311,6 +327,14 @@ mod tests {
     }
 
     #[test]
+    fn test_velocity_time() {
+        let v = vel!(100);
+        let t = u!(5 s);
+        let s = v * t;
+        assert_eq!(s, u!(500 m));
+    }
+
+    #[test]
     fn test_pressure_from_force_area() {
         let f = Force::new(num!(100.0));
         let a = Area::new(num!(5.0));
@@ -357,5 +381,13 @@ mod tests {
     fn test_deserialize_invalid_unit() {
         let result: Result<Voltage, _> = serde_json::from_str("\"3.3A\""); // 单位错了
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_div_self() {
+        let t1 = u!(100 s);
+        let t2 = u!(100 s);
+        let s = t1 / t2;
+        assert_eq!(s, num!(1))
     }
 }

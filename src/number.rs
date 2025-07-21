@@ -166,23 +166,24 @@ impl FromStr for Number {
     }
 }
 
-impl From<f64> for Number {
-    fn from(value: f64) -> Self {
-        Self {
-            value,
-            suffix: Suffix::None
+
+macro_rules! impl_from {
+    ($t:ty) => {
+        impl From<$t> for Number {
+            fn from(value: $t) -> Self {
+                Self {
+                    value: value as f64,
+                    suffix: Suffix::None
+                }
+            }
         }
-    }
+    };
 }
 
-impl From<f32> for Number {
-    fn from(value: f32) -> Self {
-        Self {
-            value: value as f64,
-            suffix: Suffix::None
-        }
-    }
-}
+impl_from!(f64);
+impl_from!(f32);
+impl_from!(u32);
+impl_from!(i32);
 
 impl Add for Number {
     type Output = Number;
