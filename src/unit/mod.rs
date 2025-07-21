@@ -6,7 +6,6 @@ use std::{fmt::Debug, marker::PhantomData, str::FromStr};
 use crate::Number;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 pub use units::*;
-pub use ops::*;
 
 pub trait Unit : PartialEq + Eq + Clone + Copy + Debug {
     fn name() -> &'static str;

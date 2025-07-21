@@ -1,42 +1,88 @@
 use crate::Number;
-use super::{Unit, UnitNumber};
 use std::{cmp::Ordering, ops::{Add, Div, Mul, Neg, Sub}};
+use paste::paste;
+use crate::unit::units::*;
 
-// Output = Self * Rhs
-pub trait UnitMul<Rhs: Unit>: Unit {
-    type Output: Unit;
+use super::{Unit, UnitNumber};
+
+/// output = lhs * rhs
+#[macro_export]
+macro_rules! impl_mul {
+    ($output:ty, $lhs:ty, $rhs:ty) => {
+        paste! {
+            impl std::ops::Mul<crate::UnitNumber<[<$rhs Unit>]>> for crate::UnitNumber<[<$lhs Unit>]> {
+                type Output = crate::UnitNumber<[<$output Unit>]>;
+                fn mul(self, rhs: crate::UnitNumber<[<$rhs Unit>]>) -> Self::Output {
+                    let result = self.number * rhs.number;
+                    crate::UnitNumber::new(result)
+                }
+            }
+        }
+    };
 }
 
-// Ouptut = Self / Rhs
-pub trait UnitDiv<Rhs: Unit>: Unit {
-    type Output: Unit;
+/// output = lhs / rhs
+#[macro_export]
+macro_rules! impl_div {
+    ($output:ty, $lhs:ty, $rhs:ty) => {
+        paste! {
+            impl std::ops::Div<crate::UnitNumber<[<$rhs Unit>]>> for crate::UnitNumber<[<$lhs Unit>]> {
+                type Output = crate::UnitNumber<[<$output Unit>]>;
+                fn div(self, rhs: crate::UnitNumber<[<$rhs Unit>]>) -> Self::Output {
+                    let result = self.number / rhs.number;
+                    crate::UnitNumber::new(result)
+                }
+            }
+        }
+    };
 }
 
-impl<LhsUnit, RhsUnit> Mul<UnitNumber<RhsUnit>> for UnitNumber<LhsUnit>
-where
-    LhsUnit: Unit + UnitMul<RhsUnit>,
-    RhsUnit: Unit,
-    <LhsUnit as UnitMul<RhsUnit>>::Output: Unit,
-{
-    type Output = UnitNumber<<LhsUnit as UnitMul<RhsUnit>>::Output>;
+/// output = lhs * rhs
+/// lhs = output / rhs
+/// rhs = output / lhs
+#[macro_export]
+macro_rules! define_rule {
+    ($output:ty, $lhs:ty, $rhs:ty) => {
+        impl_mul!($output, $lhs, $rhs);
+        impl_div!($lhs, $output, $rhs);
+        impl_div!($rhs, $output, $lhs);
+    };
+}
 
-    fn mul(self, rhs: UnitNumber<RhsUnit>) -> Self::Output {
-        let result = self.number * rhs.number;
-        UnitNumber::new(result)
+define_rule!(Voltage, Resistance, Current);    // V = R × I
+define_rule!(Power, Voltage, Current);         // P = V × I
+define_rule!(Energy, Power, Time);             // E = P × t
+define_rule!(Charge, Capacitance, Voltage);    // Q = C × V
+define_rule!(Charge, Current, Time);           // Q = C × V
+define_rule!(Current, Charge, Time);           // Q = I × t
+define_rule!(Length, Velocity, Time);          // S = V × T
+ 
+define_rule!(Power, Force, Velocity);          // P = F × v
+define_rule!(Energy, Force, Length);           // E = F × d
+define_rule!(Force, Pressure, Area);           // F = P × A
+
+define_rule!(MagneticFlux, FluxDensity, Area); // Φ = B × A
+define_rule!(MagneticFlux, Voltage, Time);     // Φ = V × t
+
+impl_mul!(Area, Length, Length);
+impl_div!(Length, Area, Length);
+
+impl Frequency {
+    pub fn to_period(&self) -> Time {
+        Time::new(1. / self.number)
     }
 }
 
-impl<LhsUnit, RhsUnit> Div<UnitNumber<RhsUnit>> for UnitNumber<LhsUnit>
-where
-    LhsUnit: Unit + UnitDiv<RhsUnit>,
-    RhsUnit: Unit,
-    <LhsUnit as UnitDiv<RhsUnit>>::Output: Unit,
-{
-    type Output = UnitNumber<<LhsUnit as UnitDiv<RhsUnit>>::Output>;
+impl Time {
+    pub fn to_frquency(&self) -> Frequency {
+        Frequency::new(1. / self.number)
+    }
+}
 
-    fn div(self, rhs: UnitNumber<RhsUnit>) -> Self::Output {
-        let result = self.number / rhs.number;
-        UnitNumber::new(result)
+impl<U: Unit> Div<UnitNumber<U>> for UnitNumber<U> {
+    type Output = Number;
+    fn div(self, rhs: UnitNumber<U>) -> Self::Output {
+        self.value() / rhs.value()
     }
 }
 

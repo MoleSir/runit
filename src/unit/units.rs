@@ -1,4 +1,4 @@
-use super::{Unit, UnitDiv, UnitMul, UnitNumber};
+use super::{Unit, UnitNumber};
 use paste::paste;
 
 macro_rules! define_unit {
@@ -14,13 +14,6 @@ macro_rules! define_unit {
             }
 
             pub type $name = UnitNumber<[<$name Unit>]>;
-
-            impl std::ops::Div<$name> for $name {
-                type Output = crate::Number;
-                fn div(self, rhs: $name) -> Self::Output {
-                    self.number / rhs.number
-                }
-            }
         }
     };
 }
@@ -46,60 +39,6 @@ define_unit!(Velocity, "m/s");
 define_unit!(Accel, "m/s²");
 define_unit!(Temperature, "K");
 define_unit!(Angle, "rad");
-
-#[macro_export]
-macro_rules! define_rule {
-    ($out:ty, $lhs:ty, $rhs:ty) => {
-        paste! {
-            impl $crate::UnitMul<[<$rhs Unit>]> for [<$lhs Unit>] {
-                type Output = [<$out Unit>];
-            }
-
-            impl $crate::UnitDiv<[<$rhs Unit>]> for [<$out Unit>] {
-                type Output = [<$lhs Unit>];
-            }
-
-            impl $crate::UnitDiv<[<$lhs Unit>]> for [<$out Unit>] {
-                type Output = [<$rhs Unit>];
-            }
-        }
-    };
-}
-
-define_rule!(Voltage, Resistance, Current);    // V = R × I
-define_rule!(Power, Voltage, Current);         // P = V × I
-define_rule!(Energy, Power, Time);             // E = P × t
-define_rule!(Charge, Capacitance, Voltage);    // Q = C × V
-define_rule!(Charge, Current, Time);           // Q = C × V
-define_rule!(Current, Charge, Time);           // Q = I × t
-define_rule!(Length, Velocity, Time);          // S = V × T
- 
-define_rule!(Power, Force, Velocity);          // P = F × v
-define_rule!(Energy, Force, Length);           // E = F × d
-define_rule!(Force, Pressure, Area);           // F = P × A
-
-define_rule!(MagneticFlux, FluxDensity, Area); // Φ = B × A
-define_rule!(MagneticFlux, Voltage, Time);     // Φ = V × t
-
-impl UnitMul<LengthUnit> for LengthUnit {
-    type Output = AreaUnit;
-}
-
-impl UnitDiv<LengthUnit> for AreaUnit {
-    type Output = LengthUnit;
-}
-
-impl Frequency {
-    pub fn to_period(&self) -> Time {
-        Time::new(1. / self.number)
-    }
-}
-
-impl Time {
-    pub fn to_frquency(&self) -> Frequency {
-        Frequency::new(1. / self.number)
-    }
-}
 
 #[cfg(test)]
 mod tests {
