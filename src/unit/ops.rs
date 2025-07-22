@@ -130,6 +130,23 @@ impl<U: Unit> Mul<UnitNumber<U>> for Number {
     }
 }
 
+// UnitNumber<U> = UnitNumber<U> * f64
+impl<U: Unit> Mul<f64> for UnitNumber<U> {
+    type Output = Self;
+    fn mul(self, rhs: f64) -> Self {
+        let lhs_val = self.number.to_f64();
+        Self::new(Number::from_f64(lhs_val * rhs))
+    }
+}
+
+// UnitNumber<U> = Number * UnitNumber<U>
+impl<U: Unit> Mul<UnitNumber<U>> for f64 {
+    type Output = UnitNumber<U>;
+    fn mul(self, rhs: UnitNumber<U>) -> UnitNumber<U> {
+        rhs * self
+    }
+}
+
 // UnitNumber<U> = UnitNumber<U> / Number
 impl<U: Unit> Div<Number> for UnitNumber<U> {
     type Output = Self;

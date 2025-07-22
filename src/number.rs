@@ -126,12 +126,21 @@ impl Number {
     pub fn is_finite(self) -> bool {
         self.value.is_finite()
     }
+
+    pub fn powf(self, exp: f64) -> Self {
+        Self::new(self.value.powf(exp), self.suffix)
+    }
+
+    pub fn atan2(self, other: f64) -> Self {
+        Self::new(self.value.atan2(other), self.suffix)
+    }
 }
 
 macro_rules! impl_f64_like_method {
     ($f:ident) => {
+        #[inline]
         pub fn $f(&self) -> Self {
-            Number::new(self.value.$f(), self.suffix)
+            Self::new(self.value.$f(), self.suffix)
         }
     };
 }
@@ -143,12 +152,25 @@ impl Number {
     impl_f64_like_method!(round);
     impl_f64_like_method!(trunc);
     impl_f64_like_method!(fract);
+
     impl_f64_like_method!(sqrt);
     impl_f64_like_method!(exp);
     impl_f64_like_method!(ln);
-    impl_f64_like_method!(log2);
     impl_f64_like_method!(log10);
+    impl_f64_like_method!(log2);
     impl_f64_like_method!(recip);
+    
+    impl_f64_like_method!(sin);
+    impl_f64_like_method!(cos);
+    impl_f64_like_method!(tan);
+    impl_f64_like_method!(asin);
+    impl_f64_like_method!(acos);
+    impl_f64_like_method!(atan);
+
+    impl_f64_like_method!(sinh);
+    impl_f64_like_method!(cosh);
+    impl_f64_like_method!(tanh);
+
     impl_f64_like_method!(to_degrees);
     impl_f64_like_method!(to_radians);
 }

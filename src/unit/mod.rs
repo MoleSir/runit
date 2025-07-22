@@ -37,12 +37,20 @@ impl<U: Unit> UnitNumber<U> {
     pub fn is_finite(self) -> bool {
         self.number.is_finite()
     }
+
+    pub fn powf(self, exp: f64) -> Self {
+        Self::new(self.number.powf(exp))
+    }
+
+    pub fn atan2(self, other: f64) -> Self {
+        Self::new(self.number.atan2(other))
+    }
 }
 
 macro_rules! impl_f64_like_method {
     ($f:ident) => {
         pub fn $f(&self) -> Self {
-            UnitNumber::new(self.number.$f())
+            Self::new(self.number.$f())
         }
     };
 }
@@ -54,12 +62,25 @@ impl<U: Unit> UnitNumber<U> {
     impl_f64_like_method!(round);
     impl_f64_like_method!(trunc);
     impl_f64_like_method!(fract);
+
     impl_f64_like_method!(sqrt);
     impl_f64_like_method!(exp);
     impl_f64_like_method!(ln);
-    impl_f64_like_method!(log2);
     impl_f64_like_method!(log10);
+    impl_f64_like_method!(log2);
     impl_f64_like_method!(recip);
+    
+    impl_f64_like_method!(sin);
+    impl_f64_like_method!(cos);
+    impl_f64_like_method!(tan);
+    impl_f64_like_method!(asin);
+    impl_f64_like_method!(acos);
+    impl_f64_like_method!(atan);
+
+    impl_f64_like_method!(sinh);
+    impl_f64_like_method!(cosh);
+    impl_f64_like_method!(tanh);
+
     impl_f64_like_method!(to_degrees);
     impl_f64_like_method!(to_radians);
 }
