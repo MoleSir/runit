@@ -118,24 +118,39 @@ impl Number {
     pub fn is_zero(&self) -> bool {
         self.value == 0.
     }
+
+    pub fn is_nan(self) -> bool {
+        self.value.is_nan()
+    }
+
+    pub fn is_finite(self) -> bool {
+        self.value.is_finite()
+    }
+}
+
+macro_rules! impl_f64_like_method {
+    ($f:ident) => {
+        pub fn $f(&self) -> Self {
+            Number::new(self.value.$f(), self.suffix)
+        }
+    };
 }
 
 impl Number {
-    pub fn abs(&self) -> Self {
-        Number::new(self.value.abs(), self.suffix)
-    }
-
-    pub fn ceil(&self) -> Self {
-        Number::new(self.value.ceil(), self.suffix)
-    }
-
-    pub fn floor(&self) -> Self {
-        Number::new(self.value.floor(), self.suffix)
-    }
-
-    pub fn round(&self) -> Self {
-        Number::new(self.value.round(), self.suffix)
-    }
+    impl_f64_like_method!(abs);
+    impl_f64_like_method!(ceil);
+    impl_f64_like_method!(floor);
+    impl_f64_like_method!(round);
+    impl_f64_like_method!(trunc);
+    impl_f64_like_method!(fract);
+    impl_f64_like_method!(sqrt);
+    impl_f64_like_method!(exp);
+    impl_f64_like_method!(ln);
+    impl_f64_like_method!(log2);
+    impl_f64_like_method!(log10);
+    impl_f64_like_method!(recip);
+    impl_f64_like_method!(to_degrees);
+    impl_f64_like_method!(to_radians);
 }
 
 impl fmt::Display for Number {
