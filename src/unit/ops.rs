@@ -1,5 +1,5 @@
 use crate::Number;
-use std::{cmp::Ordering, ops::{Add, Div, Mul, Neg, Sub}};
+use std::{cmp::Ordering, ops::{Add, Div, Mul, Neg, Rem, Sub}};
 use paste::paste;
 use crate::unit::units::*;
 
@@ -137,6 +137,13 @@ impl<U: Unit> Div<Number> for UnitNumber<U> {
         let lhs_val = self.number.to_f64();
         let rhs_val = rhs.to_f64();
         Self::new(Number::from_f64(lhs_val / rhs_val))
+    }
+}
+
+impl<U: Unit> Rem<UnitNumber<U>> for UnitNumber<U> {
+    type Output = Self;
+    fn rem(self, rhs: UnitNumber<U>) -> Self::Output {
+        Self::new(self.number % rhs.number)
     }
 }
 

@@ -1,5 +1,5 @@
 use std::fmt;
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 use std::str::FromStr;
 use serde::{Serialize, Serializer, Deserialize, Deserializer};
 use std::cmp::Ordering;
@@ -269,6 +269,27 @@ impl Div<Number> for f64 {
     }
 }
 
+impl Rem<Number> for Number {
+    type Output = Number;
+    fn rem(self, rhs: Number) -> Self::Output {
+        Number::from_f64(self.to_f64() % rhs.to_f64())
+    }
+}
+
+impl Rem<f64> for Number {
+    type Output = Number;
+    fn rem(self, rhs: f64) -> Self::Output {
+        Number::from_f64(self.to_f64() % rhs)
+    }
+}
+
+impl Rem<Number> for f64 {
+    type Output = Number;
+    fn rem(self, rhs: Number) -> Self::Output {
+        Number::from_f64(self % rhs.to_f64())
+    }
+}
+
 impl Neg for Number {
     type Output = Self;
     fn neg(self) -> Self::Output {
@@ -339,6 +360,8 @@ impl<'de> Deserialize<'de> for Number {
 
 #[cfg(test)]
 mod tests {
+    use crate::num;
+
     use super::*;
     use std::str::FromStr;
 
@@ -406,6 +429,9 @@ mod tests {
 
         let f = a / b;
         assert!((f.to_f64() - (3300.0 / 2.2e-6)).abs() < 1e-3);
+
+        let g = num!(7.3) % num!(2.0);
+        assert_eq!(g, 7.3 % 2.0);
     }
 
     #[test]
