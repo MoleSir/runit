@@ -79,6 +79,20 @@ impl Time {
     }
 }
 
+impl Mul<Time> for Frequency {
+    type Output = Number;
+    fn mul(self, rhs: Time) -> Self::Output {
+        self.value() * rhs.value()
+    }
+}
+
+impl Mul<Frequency> for Time {
+    type Output = Number;
+    fn mul(self, rhs: Frequency) -> Self::Output {
+        self.value() * rhs.value()
+    }
+}
+
 impl<U: Unit> Div<UnitNumber<U>> for UnitNumber<U> {
     type Output = Number;
     fn div(self, rhs: UnitNumber<U>) -> Self::Output {
